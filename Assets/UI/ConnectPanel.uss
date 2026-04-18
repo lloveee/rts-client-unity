@@ -1,0 +1,40 @@
+.overlay {
+    position: absolute;
+    left: 0; right: 0; top: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.85);
+    justify-content: center;
+    align-items: center;
+}
+
+.panel {
+    background-color: rgb(30, 30, 40);
+    border-radius: 8px;
+    padding: 24px;
+    width: 320px;
+}
+
+.title {
+    font-size: 20px;
+    color: rgb(200, 200, 200);
+    -unity-text-align: middle-center;
+    margin-bottom: 16px;
+}
+
+.connect-btn {
+    height: 36px;
+    margin-top: 12px;
+    background-color: rgb(50, 120, 200);
+    color: white;
+    border-radius: 4px;
+}
+
+.connect-btn:hover {
+    background-color: rgb(70, 140, 220);
+}
+
+.status {
+    color: rgb(255, 200, 100);
+    font-size: 12px;
+    margin-top: 8px;
+    -unity-text-align: middle-center;
+}

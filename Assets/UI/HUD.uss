@@ -1,0 +1,44 @@
+.top-bar {
+    position: absolute;
+    left: 0; right: 0; top: 0;
+    height: 28px;
+    background-color: rgba(0, 0, 0, 0.7);
+    flex-direction: row;
+    align-items: center;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+.top-bar > Label {
+    color: rgb(180, 180, 180);
+    font-size: 11px;
+    margin-right: 16px;
+}
+
+.status-dot {
+    color: rgb(100, 200, 100);
+    font-size: 14px;
+    margin-right: 8px;
+}
+
+.bottom-bar {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 40px;
+    background-color: rgba(0, 0, 0, 0.8);
+    flex-direction: row;
+    align-items: center;
+    padding-left: 12px;
+    padding-right: 12px;
+    justify-content: space-between;
+}
+
+.selection-text {
+    color: rgb(140, 195, 250);
+    font-size: 12px;
+}
+
+.hint-text {
+    color: rgb(120, 120, 120);
+    font-size: 11px;
+}
