@@ -1,7 +1,7 @@
 {
     "name": "RTS.UI",
     "rootNamespace": "RTS.UI",
-    "references": ["RTS.Core", "RTS.Network", "RTS.Game"],
+    "references": ["RTS.Core", "RTS.Network", "RTS.Game", "RTS.Input", "RTS.Sim"],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

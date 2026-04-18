@@ -1,0 +1,17 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="top-bar" class="top-bar">
+        <ui:Label name="connection-status" text="●" class="status-dot"/>
+        <ui:Label name="tick-label" text="Tick: 0"/>
+        <ui:Label name="hash-label" text="Hash: ------"/>
+        <ui:Label name="n-label" text="N: 3"/>
+        <ui:Label name="rtt-label" text="RTT: --ms"/>
+        <ui:Label name="fps-label" text="FPS: --"/>
+        <ui:Label name="room-label" text="Room: --"/>
+        <ui:Label name="player-label" text="Player: --"/>
+    </ui:VisualElement>
+
+    <ui:VisualElement name="bottom-bar" class="bottom-bar">
+        <ui:Label name="selection-label" text="" class="selection-text"/>
+        <ui:Label name="hint-label" text="RMB Move  A Attack  S Stop  H Hold" class="hint-text"/>
+    </ui:VisualElement>
+</ui:UXML>
