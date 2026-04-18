@@ -1,0 +1,14 @@
+{
+    "name": "RTS.Game",
+    "rootNamespace": "RTS.Game",
+    "references": ["RTS.Core", "RTS.Sim", "RTS.Network"],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

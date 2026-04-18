@@ -1,0 +1,14 @@
+{
+    "name": "RTS.Input",
+    "rootNamespace": "RTS.Input",
+    "references": ["RTS.Core", "RTS.Sim", "RTS.Network", "RTS.Game", "Unity.InputSystem"],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
