@@ -34,7 +34,13 @@ namespace RTS.Game
         public void Connect(string host, int port, string playerName, string roomID)
         {
             Client = new RtsClient();
-            Client.OnError += err => OnError?.Invoke(err);
+            Client.OnError += err =>
+            {
+                Debug.LogError($"[RtsClient] {err}");
+                OnError?.Invoke(err);
+            };
+            Client.OnLog += msg => Debug.Log(msg);
+            Debug.Log($"[GameManager] Connect → {host}:{port} room='{roomID}' name='{playerName}'");
             Client.Connect(host, port, playerName, roomID);
             State = GameState.Connecting;
         }

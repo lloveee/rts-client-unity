@@ -6,7 +6,7 @@ namespace RTS.Network
 {
     public class RtsClient : IDisposable
     {
-        public enum ClientState { Disconnected, Connecting, Connected, InRoom }
+        public enum ClientState { Disconnected, AwaitingSynAck, Connecting, Connected, InRoom }
 
         public ClientState State { get; private set; } = ClientState.Disconnected;
         public byte PlayerID { get; private set; }
@@ -18,11 +18,18 @@ namespace RTS.Network
         public event Action<FrameBundle> OnFrame;
         public event Action<NPub> OnNPub;
         public event Action<string> OnError;
+        public event Action<string> OnLog;
 
         private UdpTransport _transport;
         private Conn _conn;
         private string _playerName;
         private string _roomID;
+
+        // SYN retx (before Conn exists).
+        private double _synSentAtSec;
+        private int _synRetries;
+        private const float SynRetxIntervalSec = 0.5f;
+        private const int SynMaxRetries = 10;
 
         public void Connect(string host, int port, string playerName, string roomID)
         {
@@ -30,26 +37,45 @@ namespace RTS.Network
             _roomID = roomID;
             _transport = new UdpTransport();
             _transport.Connect(host, port);
-            _conn = new Conn(0, data => _transport.SendRaw(data));
 
-            // Send Hello
-            var hello = new Hello { ProtocolVersion = 1, PlayerName = playerName };
-            _conn.Send(WireCodec.Encode(hello));
-            State = ClientState.Connecting;
+            SendSyn();
+            _synSentAtSec = NowSec();
+            _synRetries = 0;
+            State = ClientState.AwaitingSynAck;
+            OnLog?.Invoke($"[RtsClient] SYN sent to {host}:{port}, waiting for SYN-ACK...");
         }
 
-        /// <summary>
-        /// Call from main thread every frame. Processes incoming packets.
-        /// </summary>
+        private void SendSyn()
+        {
+            var syn = new Packet { Flags = Packet.FlagSYN, ConnID = 0 };
+            _transport.SendRaw(syn.Encode());
+        }
+
         public void Update()
         {
             if (_transport == null) return;
 
-            // Process all queued raw packets
             while (_transport.IncomingPackets.TryDequeue(out byte[] raw))
             {
                 var pkt = Packet.Decode(raw);
-                if (pkt == null) continue;
+                if (pkt == null)
+                {
+                    OnLog?.Invoke($"[RtsClient] dropped malformed packet ({raw.Length} bytes)");
+                    continue;
+                }
+
+                if (_conn == null)
+                {
+                    if (pkt.IsSYN && pkt.IsACK && pkt.ConnID != 0)
+                    {
+                        HandleSynAck(pkt);
+                    }
+                    else
+                    {
+                        OnLog?.Invoke($"[RtsClient] unexpected packet before SYN-ACK: flags=0x{pkt.Flags:x2} conn_id={pkt.ConnID}");
+                    }
+                    continue;
+                }
 
                 var delivered = _conn.HandleReceive(pkt);
                 if (delivered == null) continue;
@@ -61,11 +87,30 @@ namespace RTS.Network
 
         public void Tick()
         {
+            if (_conn == null && State == ClientState.AwaitingSynAck)
+            {
+                if (NowSec() - _synSentAtSec >= SynRetxIntervalSec)
+                {
+                    if (_synRetries >= SynMaxRetries)
+                    {
+                        OnError?.Invoke($"No SYN-ACK after {SynMaxRetries} retries — is the server reachable?");
+                        State = ClientState.Disconnected;
+                        return;
+                    }
+                    _synRetries++;
+                    SendSyn();
+                    _synSentAtSec = NowSec();
+                    OnLog?.Invoke($"[RtsClient] SYN retx #{_synRetries}");
+                }
+                return;
+            }
+
             _conn?.Tick();
         }
 
         public void SendCmd(uint tick, byte op, uint unitID, int targetX, int targetY, uint targetID = 0)
         {
+            if (_conn == null) return;
             var cmd = new WireCmd
             {
                 Tick = tick, Player = PlayerID, Op = op,
@@ -76,8 +121,20 @@ namespace RTS.Network
 
         public void SendHashAck(uint tick, ulong hash)
         {
+            if (_conn == null) return;
             var ack = new HashAck { Tick = tick, Hash = hash };
             _conn.Send(WireCodec.Encode(ack));
+        }
+
+        private void HandleSynAck(Packet pkt)
+        {
+            ushort connID = pkt.ConnID;
+            _conn = new Conn(connID, data => _transport.SendRaw(data));
+            State = ClientState.Connecting;
+            OnLog?.Invoke($"[RtsClient] SYN-ACK received, conn_id={connID}, sending Hello");
+
+            var hello = new Hello { ProtocolVersion = 1, PlayerName = _playerName };
+            _conn.Send(WireCodec.Encode(hello));
         }
 
         private void ProcessMessage(byte[] data)
@@ -113,11 +170,11 @@ namespace RTS.Network
         {
             if (!ack.Accepted)
             {
-                OnError?.Invoke("Server rejected Hello");
+                OnError?.Invoke("Server rejected Hello (protocol version mismatch?)");
                 return;
             }
             State = ClientState.Connected;
-            // Send JoinRoom
+            OnLog?.Invoke($"[RtsClient] HelloAck accepted (tick_rate={ack.ServerTickRate}), sending JoinRoom room='{_roomID}'");
             var join = new JoinRoom { RoomID = _roomID };
             _conn.Send(WireCodec.Encode(join));
         }
@@ -126,7 +183,7 @@ namespace RTS.Network
         {
             if (!ack.Accepted)
             {
-                OnError?.Invoke("Server rejected JoinRoom");
+                OnError?.Invoke("Server rejected JoinRoom (room full?)");
                 return;
             }
             PlayerID = ack.PlayerID;
@@ -134,6 +191,7 @@ namespace RTS.Network
             MapW = ack.MapW;
             MapH = ack.MapH;
             State = ClientState.InRoom;
+            OnLog?.Invoke($"[RtsClient] JoinAck: player_id={PlayerID} seed={Seed} map={MapW}x{MapH}");
         }
 
         public void Dispose()
@@ -141,5 +199,8 @@ namespace RTS.Network
             _transport?.Dispose();
             State = ClientState.Disconnected;
         }
+
+        private static double NowSec() =>
+            DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000.0;
     }
 }
