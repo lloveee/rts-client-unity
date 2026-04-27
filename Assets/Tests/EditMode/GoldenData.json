@@ -1717,5 +1717,6 @@
       "expect": 102943
     }
   ],
-  "emptyWorldHash": "6e60305c26964f48"
+  "emptyWorldHash": "6e60305c26964f48",
+  "economyInitialHash": "699110135bf5774d"
 }
