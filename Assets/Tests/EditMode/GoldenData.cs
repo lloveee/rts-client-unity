@@ -18,6 +18,7 @@ namespace RTS.Tests
         public long[] splitMixSequence;
         public GoldenVec2Test[] vec2Tests;
         public GoldenAtan2Test[] atan2Tests;
+        public string emptyWorldHash;
     }
 
     [Serializable]
