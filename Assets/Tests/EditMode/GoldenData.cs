@@ -15,9 +15,10 @@ namespace RTS.Tests
         public string[] tickHashes;
         public GoldenFixedArith[] fixedArithTests;
         public int[] sinTableRaw;
-        public long[] splitMixSequence;
+        public string[] splitMixSequence;
         public GoldenVec2Test[] vec2Tests;
         public GoldenAtan2Test[] atan2Tests;
+        public string emptyWorldHash;
     }
 
     [Serializable]
