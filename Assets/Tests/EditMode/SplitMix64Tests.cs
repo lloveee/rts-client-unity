@@ -18,7 +18,8 @@ namespace RTS.Tests
             var rng = new SplitMix64(42);
             for (int i = 0; i < 100; i++)
             {
-                ulong expected = (ulong)golden.splitMixSequence[i];
+                ulong expected = ulong.Parse(golden.splitMixSequence[i],
+                    System.Globalization.NumberStyles.HexNumber);
                 ulong actual = rng.Next();
                 Assert.AreEqual(expected, actual, $"Mismatch at index {i}");
             }

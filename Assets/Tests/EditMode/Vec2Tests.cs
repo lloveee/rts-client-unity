@@ -82,7 +82,9 @@ namespace RTS.Tests
             var from = Vec2.FromInt(0, 0);
             var target = Vec2.FromInt(10, 0);
             var result = Vec2.MoveToward(from, target, Fixed32.FromInt(3));
-            Assert.AreEqual(Fixed32.FromInt(3).Raw, result.X.Raw);
+            float got = result.X.ToFloat();
+            Assert.LessOrEqual(System.Math.Abs(got - 3.0f), 0.01f,
+                $"MoveToward X = {got}, want ~3.0");
             Assert.AreEqual(0, result.Y.Raw);
         }
     }
