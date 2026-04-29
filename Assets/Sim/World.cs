@@ -260,5 +260,66 @@ namespace RTS.Sim
             if (write < Crystals.Count)
                 Crystals.RemoveRange(write, Crystals.Count - write);
         }
+        public bool GameOver;
+        public PlayerResult[] GameOverResults;
+
+        public IEntity FindEntityAny(uint id)
+        {
+            for (int i = 0; i < Units.Count; i++)
+                if (Units[i].ID == id && Units[i].State != UnitState.Dead)
+                    return new UnitRef { u = Units[i], w = this, idx = i };
+            for (int i = 0; i < Buildings.Count; i++)
+                if (Buildings[i].ID == id && Buildings[i].State != BuildingState.Dead)
+                    return new BuildingRef { b = Buildings[i], w = this, idx = i };
+            for (int i = 0; i < Crystals.Count; i++)
+                if (Crystals[i].ID == id && Crystals[i].Remaining > Fixed32.Zero)
+                    return new CrystalRef { c = Crystals[i], w = this, idx = i };
+            return null;
+        }
+    }
+
+    public struct PlayerResult { public byte PlayerID; public byte Result; }
+
+    public interface IEntity
+    {
+        bool IsDead();
+        Vec2 GetPos();
+        Fixed32 GetHP();
+        void SetHP(Fixed32 v);
+        void SetDead();
+        uint GetID();
+    }
+
+    internal struct UnitRef : IEntity
+    {
+        public Unit u; public World w; public int idx;
+        public bool IsDead() => u.State == UnitState.Dead;
+        public Vec2 GetPos() => u.Pos;
+        public Fixed32 GetHP() => u.HP;
+        public void SetHP(Fixed32 v) { u.HP = v; w.Units[idx] = u; }
+        public void SetDead() { u.State = UnitState.Dead; u.HP = Fixed32.Zero; w.Units[idx] = u; }
+        public uint GetID() => u.ID;
+    }
+
+    internal struct BuildingRef : IEntity
+    {
+        public Building b; public World w; public int idx;
+        public bool IsDead() => b.State == BuildingState.Dead;
+        public Vec2 GetPos() => b.Pos;
+        public Fixed32 GetHP() => b.HP;
+        public void SetHP(Fixed32 v) { b.HP = v; w.Buildings[idx] = b; }
+        public void SetDead() { b.State = BuildingState.Dead; w.Buildings[idx] = b; }
+        public uint GetID() => b.ID;
+    }
+
+    internal struct CrystalRef : IEntity
+    {
+        public Crystal c; public World w; public int idx;
+        public bool IsDead() => c.Remaining <= Fixed32.Zero;
+        public Vec2 GetPos() => c.Pos;
+        public Fixed32 GetHP() => c.Remaining;
+        public void SetHP(Fixed32 v) { c.Remaining = v; w.Crystals[idx] = c; }
+        public void SetDead() { c.Remaining = Fixed32.Zero; w.Crystals[idx] = c; }
+        public uint GetID() => c.ID;
     }
 }

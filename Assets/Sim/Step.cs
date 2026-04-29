@@ -4,8 +4,6 @@ namespace RTS.Sim
 {
     public static class SimStep
     {
-        public static readonly Fixed32 AttackRange = Fixed32.FromInt(2);
-        public static readonly Fixed32 AttackDamage = Fixed32.Half;
 
         public static void Step(World w, Cmd[] cmds)
         {
@@ -34,19 +32,23 @@ namespace RTS.Sim
                         StepReturning(w, ref u);
                         break;
                     case UnitState.Attacking:
-                        StepAttack(w, ref u);
+                        SimCombat.StepAttackOrAdvance(w, ref u);
                         break;
                     case UnitState.Idle:
-                        StepAttack(w, ref u);
+                        // No auto-acquire for idle.
                         break;
                 }
                 w.Units[i] = u;
             }
 
             TickProduction(w);
+            SimCombat.ResolveCombat(w);
+            SimCombat.ApplyPushAway(w);
             w.RemoveDead();
             w.RemoveDeadBuildings();
             w.RemoveDeadCrystals();
+            var results = SimVictory.CheckVictory(w);
+            if (results != null) { w.GameOver = true; w.GameOverResults = results; }
         }
 
         private static void ApplyCommands(World w, Cmd[] cmds)
@@ -92,7 +94,7 @@ namespace RTS.Sim
                         var u = w.Units[uIdx];
                         if (u.State == UnitState.Dead || u.Owner != cmd.Player) continue;
                         if (u.Range <= Fixed32.Zero) continue;
-                        u.State = UnitState.Idle;
+                        u.State = UnitState.Attacking;
                         u.TargetID = cmd.TargetID;
                         w.Units[uIdx] = u;
                         break;
@@ -112,6 +114,23 @@ namespace RTS.Sim
                     case CmdOp.Train:
                         ApplyCmdTrain(w, cmd);
                         break;
+                    case CmdOp.AttackMove:
+                    {
+                        int uIdx = w.FindUnitIndex(cmd.UnitID);
+                        if (uIdx < 0) continue;
+                        var u = w.Units[uIdx];
+                        if (u.State == UnitState.Dead || u.Owner != cmd.Player) continue;
+                        if (u.Range <= Fixed32.Zero) continue;
+                        u.State = UnitState.Attacking;
+                        u.AttackMoveTarget = cmd.TargetPos;
+                        u.TargetID = 0;
+                        w.Units[uIdx] = u;
+                        break;
+                    }
+                    case CmdOp.Surrender:
+                        if (cmd.Player < w.Players.Count)
+                        { var p = w.Players[cmd.Player]; p.Surrendered = true; w.Players[cmd.Player] = p; }
+                        break;
                 }
             }
         }
@@ -125,43 +144,6 @@ namespace RTS.Sim
             u.Pos = newPos;
             if (u.Pos.DistSq(u.MoveTo) <= Fixed32.Eps)
                 u.State = UnitState.Idle;
-        }
-
-        private static void StepAttack(World w, ref Unit u)
-        {
-            if (u.TargetID == 0) return;
-
-            int targetIdx = w.FindUnitIndex(u.TargetID);
-            if (targetIdx < 0)
-            {
-                u.TargetID = 0;
-                return;
-            }
-
-            var target = w.Units[targetIdx];
-            if (target.State == UnitState.Dead)
-            {
-                u.TargetID = 0;
-                return;
-            }
-
-            var distSq = u.Pos.DistSq(target.Pos);
-            var rangeSq = AttackRange * AttackRange;
-
-            if (distSq <= rangeSq)
-            {
-                target.HP = target.HP - AttackDamage;
-                if (target.HP <= Fixed32.Zero)
-                {
-                    target.State = UnitState.Dead;
-                    target.HP = Fixed32.Zero;
-                }
-                w.Units[targetIdx] = target;
-            }
-            else
-            {
-                u.Pos = Vec2.MoveToward(u.Pos, target.Pos, u.Speed);
-            }
         }
 
         private static void StepMining(World w, ref Unit u)

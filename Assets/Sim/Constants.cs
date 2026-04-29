@@ -42,7 +42,7 @@ namespace RTS.Sim
             [BuildingType.HQ] = new BuildingStat
             {
                 MaxHP = 800, VisionRange = 12, Cost = 0, BuildTicks = 0, SizeCells = 4,
-                Trains = new[] { UnitType.Worker }
+                Trains = new[] { UnitType.Worker, UnitType.Soldier }
             },
             [BuildingType.Barracks] = new BuildingStat
             {
