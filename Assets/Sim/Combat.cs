@@ -48,7 +48,7 @@ namespace RTS.Sim
                     var dir = ui.Pos - uj.Pos;
                     if (dir.X.Raw == 0 && dir.Y.Raw == 0) dir = Vec2.FromInt(1, 0);
                     else dir = dir.Normalize();
-                    ui.Pos = ui.Pos + dir * pushStep;
+                    ui.Pos = ui.Pos + dir.Scale(pushStep);
                     ui.Pos = new Vec2(ui.Pos.X.Clamp(Fixed32.Zero, w.MapSizeX),
                                        ui.Pos.Y.Clamp(Fixed32.Zero, w.MapSizeY));
                 }

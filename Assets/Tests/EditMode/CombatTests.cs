@@ -56,9 +56,9 @@ namespace RTS.Tests
             var dmg = new Fixed32((int)(s.Damage * 65536f));
             for (int i = 0; i < 5; i++)
             {
-                w.SpawnUnit(0, Vec2.FromInt(40 + i, 48 + i), Fixed32.FromInt(s.MaxHP), spd);
+                w.SpawnUnit(0, Vec2.FromInt(48, 48 + i), Fixed32.FromInt(s.MaxHP), spd);
                 var u = w.Units[w.Units.Count - 1]; u.Type = UnitType.Soldier; u.Range = rng; u.Damage = dmg; w.Units[w.Units.Count - 1] = u;
-                w.SpawnUnit(1, Vec2.FromInt(60 - i, 48 + i), Fixed32.FromInt(s.MaxHP), spd);
+                w.SpawnUnit(1, Vec2.FromInt(50, 48 + i), Fixed32.FromInt(s.MaxHP), spd);
                 u = w.Units[w.Units.Count - 1]; u.Type = UnitType.Soldier; u.Range = rng; u.Damage = dmg; w.Units[w.Units.Count - 1] = u;
             }
             return w;
