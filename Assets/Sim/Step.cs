@@ -34,6 +34,9 @@ namespace RTS.Sim
                     case UnitState.Attacking:
                         SimCombat.StepAttackOrAdvance(w, ref u);
                         break;
+                    case UnitState.Building:
+                        SimConstruction.StepBuilding(w, ref u);
+                        break;
                     case UnitState.Idle:
                         // No auto-acquire for idle.
                         break;
@@ -127,6 +130,9 @@ namespace RTS.Sim
                         w.Units[uIdx] = u;
                         break;
                     }
+                    case CmdOp.Build:
+                        SimConstruction.ApplyCmdBuild(w, cmd);
+                        break;
                     case CmdOp.Surrender:
                         if (cmd.Player < w.Players.Count)
                         { var p = w.Players[cmd.Player]; p.Surrendered = true; w.Players[cmd.Player] = p; }
