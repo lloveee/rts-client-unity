@@ -35,7 +35,7 @@ namespace RTS.Sim
         {
             if (u.Path==null||u.Path.Length==0){u.State=UnitState.Idle;return;}
             var wp=u.Path[0];
-            if (u.Pos.DistSq(wp)<=Fixed32.FromFloat(4f)){ var n=new Vec2[u.Path.Length-1]; for(int i=1;i<u.Path.Length;i++)n[i-1]=u.Path[i]; u.Path=n; if(u.Path.Length==0){u.State=UnitState.Idle;return;} wp=u.Path[0]; }
+            if (u.Pos.DistSq(wp)<=Fixed32.FromInt(4)){ var n=new Vec2[u.Path.Length-1]; for(int i=1;i<u.Path.Length;i++)n[i-1]=u.Path[i]; u.Path=n; if(u.Path.Length==0){u.State=UnitState.Idle;return;} wp=u.Path[0]; }
             var np=Vec2.MoveToward(u.Pos,wp,u.Speed); u.Pos=new Vec2(np.X.Clamp(Fixed32.Zero,w.MapSizeX),np.Y.Clamp(Fixed32.Zero,w.MapSizeY));
         }
 
