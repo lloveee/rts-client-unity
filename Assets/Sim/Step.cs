@@ -51,6 +51,7 @@ namespace RTS.Sim
 
         private static void ApplyCommands(World w, Cmd[] cmds)
         {
+            if (cmds == null) return;
             for (int c = 0; c < cmds.Length; c++)
             {
                 ref readonly var cmd = ref cmds[c];
