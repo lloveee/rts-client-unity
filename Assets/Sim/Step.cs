@@ -23,7 +23,10 @@ namespace RTS.Sim
                 switch (u.State)
                 {
                     case UnitState.Moving:
-                        StepMove(w, ref u);
+                        if (u.Path != null && u.Path.Length > 0)
+                            SimPathfinding.StepMovePath(w, ref u);
+                        else
+                            StepMove(w, ref u);
                         break;
                     case UnitState.Mining:
                         StepMining(w, ref u);
@@ -86,6 +89,7 @@ namespace RTS.Sim
 
                         u.State = UnitState.Moving;
                         u.MoveTo = cmd.TargetPos;
+                        u.Path = SimPathfinding.FindPath(w, u.Pos, cmd.TargetPos)?.ToArray();
                         u.TargetID = 0;
                         w.Units[uIdx] = u;
                         break;
@@ -126,6 +130,7 @@ namespace RTS.Sim
                         if (u.Range <= Fixed32.Zero) continue;
                         u.State = UnitState.Attacking;
                         u.AttackMoveTarget = cmd.TargetPos;
+                        u.Path = SimPathfinding.FindPath(w, u.Pos, cmd.TargetPos)?.ToArray();
                         u.TargetID = 0;
                         w.Units[uIdx] = u;
                         break;
